@@ -171,6 +171,14 @@
             color: #c5221f;
             display: block !important;
         }
+        /* تنسيق رسالة الموقع الجغرافي */
+        #locationStatus {
+            text-align: center;
+            font-weight: 600;
+            font-size: 18px;
+            padding: 30px 10px;
+            color: #555;
+        }
     </style>
 </head>
 <body>
@@ -181,7 +189,11 @@
     </div>
     
     <div class="form-body">
-        <form id="studentForm">
+        <!-- رسالة التحقق من الموقع -->
+        <p id="locationStatus">جاري التحقق من موقعك الجغرافي... يرجى السماح للمتصفح بالوصول إلى موقعك.</p>
+
+        <!-- النموذج مخفي حتى يتم التحقق من الموقع -->
+        <form id="studentForm" style="display: none;">
             <!-- اسم الطالب -->
             <div class="form-group">
                 <label class="question" for="name">اسم الطالب <span class="required-star">*</span></label>
@@ -238,10 +250,74 @@
 </div>
 
 <script>
-    // ✅ تم وضع رابط الـ Google Apps Script الخاص بك هنا
+    // ✅ رابط الـ Google Apps Script الخاص بك
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzN5Ns98fE3PCdjGlLHMr1O3p_6Otc7gavuLZKpTuNrMNeYawM3WQVY5MRzSGRjMnFxrw/exec';
 
-    // تفعيل وتعطيل مربع النص عند اختيار Other
+    // 📍 إعدادات الموقع الجغرافي (هيئة ميناء دمياط)
+    const TARGET_LATITUDE = 31.445611;
+    const TARGET_LONGITUDE = 31.765583;
+    const ALLOWED_RADIUS_METERS = 100; // المسافة المسموح بها (100 متر)
+
+    let userLat = null;
+    let userLng = null;
+
+    // --- منطق فحص الموقع الجغرافي ---
+    window.onload = function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(checkLocation, locationError);
+        } else {
+            document.getElementById('locationStatus').innerText = "متصفحك لا يدعم تحديد الموقع الجغرافي.";
+            document.getElementById('locationStatus').style.color = "red";
+        }
+    };
+
+    function checkLocation(position) {
+        userLat = position.coords.latitude;
+        userLng = position.coords.longitude;
+
+        // حساب المسافة بين الطالب والميناء
+        const distance = getDistanceFromLatLonInMeters(userLat, userLng, TARGET_LATITUDE, TARGET_LONGITUDE);
+
+        if (distance <= ALLOWED_RADIUS_METERS) {
+            // الطالب داخل النطاق
+            document.getElementById('locationStatus').innerText = "تم التحقق من موقعك! يمكنك ملء النموذج الآن.";
+            document.getElementById('locationStatus').style.color = "green";
+            document.getElementById('studentForm').style.display = 'block'; // إظهار النموذج
+        } else {
+            // الطالب خارج النطاق
+            document.getElementById('locationStatus').innerText = `تم رفض الوصول. أنت بعيد عن ميناء دمياط بمسافة ${Math.round(distance)} متر. يجب التواجد داخل الميناء لتسجيل الحضور.`;
+            document.getElementById('locationStatus').style.color = "red";
+        }
+    }
+
+    function locationError(error) {
+        let errorMsg = "تعذر الوصول إلى موقعك. ";
+        if (error.code === error.PERMISSION_DENIED) {
+            errorMsg += "يرجى السماح بالوصول إلى الموقع في إعدادات المتصفح للمتابعة.";
+        }
+        document.getElementById('locationStatus').innerText = errorMsg;
+        document.getElementById('locationStatus').style.color = "red";
+    }
+
+    // معادلة حساب المسافة بالأمتار (Haversine)
+    function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
+        var R = 6371000; // نصف قطر الأرض بالأمتار
+        var dLat = deg2rad(lat2-lat1);
+        var dLon = deg2rad(lon2-lon1); 
+        var a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2); 
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+        var d = R * c; 
+        return d;
+    }
+
+    function deg2rad(deg) {
+        return deg * (Math.PI/180);
+    }
+
+    // --- منطق خيار Other وإرسال النموذج ---
     const radios = document.querySelectorAll('input[name="college"]');
     const otherInput = document.getElementById('otherCollege');
     
@@ -249,17 +325,16 @@
         radio.addEventListener('change', function() {
             if (this.value === 'Other') {
                 otherInput.disabled = false;
-                otherInput.required = true; // إجبار الطالب على الكتابة إذا اختار Other
+                otherInput.required = true;
                 otherInput.focus();
             } else {
                 otherInput.disabled = true;
                 otherInput.required = false;
-                otherInput.value = ''; // مسح النص إذا تم تغيير الاختيار
+                otherInput.value = '';
             }
         });
     });
 
-    // منطق إرسال النموذج
     document.getElementById('studentForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -267,7 +342,6 @@
         const nationalID = document.getElementById('nationalID').value;
         let college = document.querySelector('input[name="college"]:checked').value;
         
-        // إذا تم اختيار Other، نأخذ القيمة المكتوبة في المربع النصي
         if (college === 'Other') {
             college = otherInput.value.trim();
             if (college === '') {
@@ -301,7 +375,7 @@
             statusMsg.innerText = "تم تسجيل حضورك بنجاح!";
             statusMsg.classList.add('success-msg');
             document.getElementById('studentForm').reset();
-            otherInput.disabled = true; // إعادة تعطيل المربع بعد الإرسال
+            otherInput.disabled = true;
             submitBtn.innerText = "إرسال";
             submitBtn.disabled = false;
         }).catch(error => {
