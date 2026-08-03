@@ -1,147 +1,313 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Registration Form</title>
+    <title>Damietta Port Summer Training</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; padding: 20px; }
-        .form-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="email"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        button:disabled { background-color: #cccccc; cursor: not-allowed; }
-        #statusMessage { margin-top: 15px; font-weight: bold; text-align: center; }
+        body {
+            font-family: 'Cairo', 'Roboto', Arial, sans-serif;
+            background-color: #f0ebf4;
+            margin: 0;
+            padding: 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+        .form-wrapper {
+            width: 100%;
+            max-width: 650px;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+        .form-header {
+            background-color: #673ab7; 
+            color: white;
+            padding: 20px 24px;
+        }
+        .form-header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 400;
+        }
+        .form-body {
+            padding: 24px;
+        }
+        .form-group {
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .question {
+            font-size: 16px;
+            font-weight: 600;
+            color: #202124;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .required-star {
+            color: #d93025;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px 0;
+            border: none;
+            border-bottom: 1px solid #dadce0;
+            font-size: 16px;
+            font-family: 'Cairo', sans-serif;
+            outline: none;
+            background: transparent;
+            transition: border-bottom 0.2s;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus {
+            border-bottom: 2px solid #673ab7;
+        }
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            color: #202124;
+            cursor: pointer;
+        }
+        .radio-label input[type="radio"] {
+            margin-left: 10px;
+            width: 16px;
+            height: 16px;
+            accent-color: #673ab7;
+        }
+        .other-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .other-container input[type="radio"] {
+            margin-left: 0;
+        }
+        .other-input {
+            flex-grow: 1;
+            padding: 5px 0 !important;
+            border-bottom: 1px solid #dadce0 !important;
+        }
+        .other-input:disabled {
+            background-color: #f5f5f5;
+            border-bottom: 1px dashed #dadce0 !important;
+        }
+        .college-note {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed #ddd;
+        }
+        .note-text {
+            font-weight: 600;
+            color: #d93025;
+            margin: 0 0 10px 0;
+        }
+        .click-here-text {
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            color: #555;
+        }
+        .link-btn {
+            display: block;
+            text-align: center;
+            background-color: #1a73e8;
+            color: white;
+            padding: 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            font-family: 'Cairo', sans-serif;
+            transition: background-color 0.2s;
+        }
+        .link-btn:hover {
+            background-color: #1557b0;
+        }
+        .submit-btn-container {
+            text-align: left;
+            padding-top: 10px;
+        }
+        button {
+            background-color: #673ab7;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #5e35b1;
+        }
+        button:disabled {
+            background-color: #bcaaa4;
+            cursor: not-allowed;
+        }
+        #statusMessage {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+        }
+        .success-msg {
+            background-color: #e6f4ea;
+            color: #137333;
+            display: block !important;
+        }
+        .error-msg {
+            background-color: #fce8e6;
+            color: #c5221f;
+            display: block !important;
+        }
     </style>
 </head>
 <body>
 
-<div class="form-container">
-    <h2>Student Form</h2>
+<div class="form-wrapper">
+    <div class="form-header">
+        <h1>Damietta Port Summer Training attendance</h1>
+    </div>
     
-    <!-- Status message before form is allowed -->
-    <p id="locationStatus">Checking your location...</p>
+    <div class="form-body">
+        <form id="studentForm">
+            <!-- اسم الطالب -->
+            <div class="form-group">
+                <label class="question" for="name">اسم الطالب <span class="required-star">*</span></label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            
+            <!-- الرقم القومى -->
+            <div class="form-group">
+                <label class="question" for="nationalID">الرقم القومى <span class="required-star">*</span></label>
+                <input type="text" id="nationalID" name="nationalID" required>
+            </div>
+            
+            <!-- اسم الكلية (اختيارات + Other) -->
+            <div class="form-group">
+                <label class="question">اسم الكلية <span class="required-star">*</span></label>
+                <div class="radio-group">
+                    <label class="radio-label"><input type="radio" name="college" value="كلية هندسة" required> كلية هندسة</label>
+                    <label class="radio-label"><input type="radio" name="college" value="كلية حاسبات" required> كلية حاسبات</label>
+                    <label class="radio-label"><input type="radio" name="college" value="كلية تجارة" required> كلية تجارة</label>
+                    <label class="radio-label"><input type="radio" name="college" value="معهد هندسي" required> معهد هندسي</label>
+                    <label class="radio-label"><input type="radio" name="college" value="معهد نظم معلومات" required> معهد نظم معلومات</label>
+                    <label class="radio-label"><input type="radio" name="college" value="معهد النيل العالي والعلوم التجارية" required> معهد النيل العالي والعلوم التجارية</label>
+                    <label class="radio-label"><input type="radio" name="college" value="كليه التربيه" required> كليه التربيه</label>
+                    <label class="radio-label"><input type="radio" name="college" value="معهد عالى ادارة وحاسب الي براس البر 51" required> معهد عالى ادارة وحاسب الي براس البر 51</label>
+                    <label class="radio-label"><input type="radio" name="college" value="الاكاديميه الاوروبى للتكنولجيا والمعلومات" required> الاكاديميه الاوروبى للتكنولجيا والمعلومات</label>
+                    <label class="radio-label"><input type="radio" name="college" value="المعهد العالي الإداره و الحاسب الالي" required> المعهد العالي الإداره و الحاسب الالي</label>
+                    <label class="radio-label"><input type="radio" name="college" value="تربية نوعية" required> تربية نوعية</label>
+                    
+                    <!-- خيار Other -->
+                    <div class="other-container">
+                        <input type="radio" name="college" id="otherRadio" value="Other" required>
+                        <label for="otherRadio" style="margin-left: 5px; margin-right: 0;">Other:</label>
+                        <input type="text" id="otherCollege" class="other-input" disabled placeholder="اكتب اسم الكلية هنا">
+                    </div>
+                </div>
 
-    <form id="studentForm" style="display: none;">
-        <div class="form-group">
-            <label for="name">Full Name:</label>
-            <input type="text" id="name" name="name" required>
-        </div>
-        <div class="form-group">
-            <label for="email">Student Email:</label>
-            <input type="email" id="email" name="email" required>
-        </div>
-        <button type="submit">Submit Information</button>
-    </form>
+                <!-- الملاحظة والزر تحت اسم الكلية -->
+                <div class="college-note">
+                    <p class="note-text">خاص بهندسة و حاسبات فقط</p>
+                    <p class="click-here-text">please click here</p>
+                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdcfXU0nQOPnHBMAsM98BAE90Pqbc9_CW7vzj0RpTX8RiLyfA/viewform?usp=publish-editor" target="_blank" class="link-btn">
+                        اضغط هنا للانتقال
+                    </a>
+                </div>
+            </div>
+            
+            <div class="submit-btn-container">
+                <button type="submit" id="submitBtn">إرسال</button>
+            </div>
+        </form>
 
-    <p id="statusMessage"></p>
+        <div id="statusMessage"></div>
+    </div>
 </div>
 
 <script>
-    // --- CONFIGURATION ---
-    const GOOGLE_SCRIPT_URL = 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+    // ✅ تم وضع رابط الـ Google Apps Script الخاص بك هنا
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzN5Ns98fE3PCdjGlLHMr1O3p_6Otc7gavuLZKpTuNrMNeYawM3WQVY5MRzSGRjMnFxrw/exec';
+
+    // تفعيل وتعطيل مربع النص عند اختيار Other
+    const radios = document.querySelectorAll('input[name="college"]');
+    const otherInput = document.getElementById('otherCollege');
     
-    // Set the specific geographic location (e.g., your school's coordinates)
-    const TARGET_LATITUDE = 40.712776;  // Replace with your target Latitude
-    const TARGET_LONGITUDE = -74.005974; // Replace with your target Longitude
-    const ALLOWED_RADIUS_METERS = 500; // Students must be within 500 meters of the target
+    radios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'Other') {
+                otherInput.disabled = false;
+                otherInput.required = true; // إجبار الطالب على الكتابة إذا اختار Other
+                otherInput.focus();
+            } else {
+                otherInput.disabled = true;
+                otherInput.required = false;
+                otherInput.value = ''; // مسح النص إذا تم تغيير الاختيار
+            }
+        });
+    });
 
-    let userLat = null;
-    let userLng = null;
-
-    // --- GEOLOCATION LOGIC ---
-    window.onload = function() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(checkLocation, locationError);
-        } else {
-            document.getElementById('locationStatus').innerText = "Geolocation is not supported by your browser.";
-        }
-    };
-
-    function checkLocation(position) {
-        userLat = position.coords.latitude;
-        userLng = position.coords.longitude;
-
-        // Calculate distance between student and target location
-        const distance = getDistanceFromLatLonInMeters(userLat, userLng, TARGET_LATITUDE, TARGET_LONGITUDE);
-
-        if (distance <= ALLOWED_RADIUS_METERS) {
-            // Student is in the correct location
-            document.getElementById('locationStatus').innerText = "Location verified! You can fill the form.";
-            document.getElementById('locationStatus').style.color = "green";
-            document.getElementById('studentForm').style.display = 'block';
-        } else {
-            // Student is too far away
-            document.getElementById('locationStatus').innerText = `Access Denied. You are ${Math.round(distance)} meters away from the required location.`;
-            document.getElementById('locationStatus').style.color = "red";
-        }
-    }
-
-    function locationError(error) {
-        let errorMsg = "Unable to retrieve location. ";
-        if (error.code === error.PERMISSION_DENIED) {
-            errorMsg += "Please allow location access in your browser to continue.";
-        }
-        document.getElementById('locationStatus').innerText = errorMsg;
-        document.getElementById('locationStatus').style.color = "red";
-    }
-
-    // Haversine formula to calculate distance between two GPS coordinates in meters
-    function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
-        var R = 6371000; // Radius of the earth in meters
-        var dLat = deg2rad(lat2-lat1);
-        var dLon = deg2rad(lon2-lon1); 
-        var a = 
-            Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
-            Math.sin(dLon/2) * Math.sin(dLon/2); 
-        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-        var d = R * c; 
-        return d;
-    }
-
-    function deg2rad(deg) {
-        return deg * (Math.PI/180);
-    }
-
-    // --- FORM SUBMISSION LOGIC ---
+    // منطق إرسال النموذج
     document.getElementById('studentForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
         const name = document.getElementById('name').value;
-        const email = document.getElementById('email').value;
-        const submitBtn = document.querySelector('button[type="submit"]');
+        const nationalID = document.getElementById('nationalID').value;
+        let college = document.querySelector('input[name="college"]:checked').value;
+        
+        // إذا تم اختيار Other، نأخذ القيمة المكتوبة في المربع النصي
+        if (college === 'Other') {
+            college = otherInput.value.trim();
+            if (college === '') {
+                alert("الرجاء كتابة اسم الكلية في خانة Other");
+                return;
+            }
+        }
+        
+        const submitBtn = document.getElementById('submitBtn');
         const statusMsg = document.getElementById('statusMessage');
 
         submitBtn.disabled = true;
-        submitBtn.innerText = "Submitting...";
-        statusMsg.innerText = "";
+        submitBtn.innerText = "جاري الإرسال...";
+        statusMsg.style.display = 'none';
+        statusMsg.className = '';
 
         const data = {
             name: name,
-            email: email,
-            latitude: userLat,
-            longitude: userLng
+            nationalID: nationalID,
+            college: college
         };
 
         fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors', // Required for Google Apps Script
+            mode: 'no-cors',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(data)
         }).then(() => {
-            statusMsg.style.color = 'green';
-            statusMsg.innerText = "Success! Your data has been recorded.";
+            statusMsg.innerText = "تم تسجيل حضورك بنجاح!";
+            statusMsg.classList.add('success-msg');
             document.getElementById('studentForm').reset();
-            submitBtn.innerText = "Submit Information";
+            otherInput.disabled = true; // إعادة تعطيل المربع بعد الإرسال
+            submitBtn.innerText = "إرسال";
             submitBtn.disabled = false;
         }).catch(error => {
-            statusMsg.style.color = 'red';
-            statusMsg.innerText = "Error submitting form.";
-            submitBtn.innerText = "Submit Information";
+            statusMsg.innerText = "حدث خطأ، يرجى المحاولة مرة أخرى.";
+            statusMsg.classList.add('error-msg');
+            submitBtn.innerText = "إرسال";
             submitBtn.disabled = false;
         });
     });
