@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration Form</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; padding: 20px; }
+        .form-container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="email"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        #statusMessage { margin-top: 15px; font-weight: bold; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Student Form</h2>
+    
+    <!-- Status message before form is allowed -->
+    <p id="locationStatus">Checking your location...</p>
+
+    <form id="studentForm" style="display: none;">
+        <div class="form-group">
+            <label for="name">Full Name:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Student Email:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <button type="submit">Submit Information</button>
+    </form>
+
+    <p id="statusMessage"></p>
+</div>
+
+<script>
+    // --- CONFIGURATION ---
+    const GOOGLE_SCRIPT_URL = 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+    
+    // Set the specific geographic location (e.g., your school's coordinates)
+    const TARGET_LATITUDE = 40.712776;  // Replace with your target Latitude
+    const TARGET_LONGITUDE = -74.005974; // Replace with your target Longitude
+    const ALLOWED_RADIUS_METERS = 500; // Students must be within 500 meters of the target
+
+    let userLat = null;
+    let userLng = null;
+
+    // --- GEOLOCATION LOGIC ---
+    window.onload = function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(checkLocation, locationError);
+        } else {
+            document.getElementById('locationStatus').innerText = "Geolocation is not supported by your browser.";
+        }
+    };
+
+    function checkLocation(position) {
+        userLat = position.coords.latitude;
+        userLng = position.coords.longitude;
+
+        // Calculate distance between student and target location
+        const distance = getDistanceFromLatLonInMeters(userLat, userLng, TARGET_LATITUDE, TARGET_LONGITUDE);
+
+        if (distance <= ALLOWED_RADIUS_METERS) {
+            // Student is in the correct location
+            document.getElementById('locationStatus').innerText = "Location verified! You can fill the form.";
+            document.getElementById('locationStatus').style.color = "green";
+            document.getElementById('studentForm').style.display = 'block';
+        } else {
+            // Student is too far away
+            document.getElementById('locationStatus').innerText = `Access Denied. You are ${Math.round(distance)} meters away from the required location.`;
+            document.getElementById('locationStatus').style.color = "red";
+        }
+    }
+
+    function locationError(error) {
+        let errorMsg = "Unable to retrieve location. ";
+        if (error.code === error.PERMISSION_DENIED) {
+            errorMsg += "Please allow location access in your browser to continue.";
+        }
+        document.getElementById('locationStatus').innerText = errorMsg;
+        document.getElementById('locationStatus').style.color = "red";
+    }
+
+    // Haversine formula to calculate distance between two GPS coordinates in meters
+    function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
+        var R = 6371000; // Radius of the earth in meters
+        var dLat = deg2rad(lat2-lat1);
+        var dLon = deg2rad(lon2-lon1); 
+        var a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2); 
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+        var d = R * c; 
+        return d;
+    }
+
+    function deg2rad(deg) {
+        return deg * (Math.PI/180);
+    }
+
+    // --- FORM SUBMISSION LOGIC ---
+    document.getElementById('studentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const submitBtn = document.querySelector('button[type="submit"]');
+        const statusMsg = document.getElementById('statusMessage');
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Submitting...";
+        statusMsg.innerText = "";
+
+        const data = {
+            name: name,
+            email: email,
+            latitude: userLat,
+            longitude: userLng
+        };
+
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Required for Google Apps Script
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        }).then(() => {
+            statusMsg.style.color = 'green';
+            statusMsg.innerText = "Success! Your data has been recorded.";
+            document.getElementById('studentForm').reset();
+            submitBtn.innerText = "Submit Information";
+            submitBtn.disabled = false;
+        }).catch(error => {
+            statusMsg.style.color = 'red';
+            statusMsg.innerText = "Error submitting form.";
+            submitBtn.innerText = "Submit Information";
+            submitBtn.disabled = false;
+        });
+    });
+</script>
+
+</body>
+</html>
