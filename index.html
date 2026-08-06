@@ -244,13 +244,32 @@
 <script>
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzN5Ns98fE3PCdjGlLHMr1O3p_6Otc7gavuLZKpTuNrMNeYawM3WQVY5MRzSGRjMnFxrw/exec';
 
-    // إعدادات الموقع الجغرافي
     const TARGET_LATITUDE = 31.445611;
     const TARGET_LONGITUDE = 31.765583;
     const ALLOWED_RADIUS_METERS = 100; 
 
     let userLat = null;
     let userLng = null;
+
+    // دالة للحصول على تاريخ اليوم بصيغة YYYY-MM-DD
+    function getTodayKey() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+
+    // دالة لفحص هل الطالب سجل حضوره النهارده
+    function hasRegisteredToday() {
+        const stored = localStorage.getItem('dp_attendance_date');
+        return stored === getTodayKey();
+    }
+
+    // دالة لتسجيل حضور اليوم
+    function markRegisteredToday() {
+        localStorage.setItem('dp_attendance_date', getTodayKey());
+    }
 
     window.onload = function() {
         if (navigator.geolocation) {
@@ -267,9 +286,8 @@
         const distance = getDistanceFromLatLonInMeters(userLat, userLng, TARGET_LATITUDE, TARGET_LONGITUDE);
 
         if (distance <= ALLOWED_RADIUS_METERS) {
-            // ✅ فحص هل الطالب سجل من قبل على هذا الموبايل
-            if (localStorage.getItem('dp_attendance_registered')) {
-                document.getElementById('locationStatus').innerText = "تنبيه: لقد قمت بتسجيل حضورك مسبقاً من هذا الجهاز. لا يمكن التسجيل مرتين.";
+            if (hasRegisteredToday()) {
+                document.getElementById('locationStatus').innerText = "تنبيه: لقد قمت بتسجيل حضورك اليوم بالفعل من هذا الجهاز. لا يمكن التسجيل مرتين في نفس اليوم.";
                 document.getElementById('locationStatus').style.color = "red";
             } else {
                 document.getElementById('locationStatus').innerText = "تم التحقق من موقعك! يمكنك ملء النموذج الآن.";
@@ -277,7 +295,7 @@
                 document.getElementById('studentForm').style.display = 'block';
             }
         } else {
-            document.getElementById('locationStatus').innerText = `تم رفض الوصول. أنت بعيد عن ميناء دمياط بمسافة ${Math.round(distance)} متر. يجب التواجد داخل الميناء لتسجيل الحضور.`;
+            document.getElementById('locationStatus').innerText = "تم رفض الوصول. أنت بعيد عن ميناء دمياط بمسافة " + Math.round(distance) + " متر. يجب التواجد داخل الميناء لتسجيل الحضور.";
             document.getElementById('locationStatus').style.color = "red";
         }
     }
@@ -293,16 +311,16 @@
 
     function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
         var R = 6371000; 
-        var dLat = deg2rad(lat2-lat1);
-        var dLon = deg2rad(lon2-lon1); 
-        var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
-        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+        var dLat = deg2rad(lat2 - lat1);
+        var dLon = deg2rad(lon2 - lon1); 
+        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2); 
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
         var d = R * c; 
         return d;
     }
 
     function deg2rad(deg) {
-        return deg * (Math.PI/180);
+        return deg * (Math.PI / 180);
     }
 
     const radios = document.querySelectorAll('input[name="college"]');
@@ -357,8 +375,8 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         }).then(() => {
-            // ✅ حفظ بصمة الجهاز بعد نجاح الإرسال لمنع التكرار
-            localStorage.setItem('dp_attendance_registered', 'true');
+            // حفظ تاريخ اليوم فقط، مش قيمة دائمة
+            markRegisteredToday();
             
             statusMsg.innerText = "تم تسجيل حضورك بنجاح!";
             statusMsg.classList.add('success-msg');
@@ -367,7 +385,6 @@
             submitBtn.innerText = "إرسال";
             submitBtn.disabled = false;
             
-            // إخفاء النموذج بعد التسجيل لمنع المحاولة مرة أخرى
             document.getElementById('studentForm').style.display = 'none';
             document.getElementById('locationStatus').innerText = "تم تسجيل حضورك بنجاح. يمكنك إغلاق الصفحة الآن.";
             document.getElementById('locationStatus').style.color = "green";
